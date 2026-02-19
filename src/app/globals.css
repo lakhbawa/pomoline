@@ -1,0 +1,53 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: #121212;
+  --surface: #1e1e1e;
+  --border: #2a2a2a;
+  --primary: #f49d25;
+  --primary-dim: rgba(244, 157, 37, 0.15);
+  --text-primary: #f0ece4;
+  --text-muted: #6b6560;
+  --success: #14b8a6;
+  --danger: #ef4444;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  color: var(--text-primary);
+  background: var(--background);
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--background);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-muted);
+}
+
+/* Focus styles */
+input:focus,
+textarea:focus {
+  outline: none;
+}
+
+/* Transition defaults */
+.transition-default {
+  transition: all 0.2s ease-in-out;
+}
