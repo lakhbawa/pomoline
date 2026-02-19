@@ -3,6 +3,8 @@
 import { useState, useEffect } from "react";
 import { useTaskStore } from "@/store/useTaskStore";
 import { TaskWithRelations, Stage, Priority, StepData } from "@/lib/types";
+import StageHeader from "@/components/ui/StageHeader";
+import FooterBar from "@/components/ui/FooterBar";
 
 interface PomoBlockLocal {
   id: string;
@@ -23,7 +25,9 @@ export default function PomoSize({
   const [blocks, setBlocks] = useState<PomoBlockLocal[]>([]);
   const [unassignedSteps, setUnassignedSteps] = useState<StepData[]>([]);
   const [draggedStep, setDraggedStep] = useState<StepData | null>(null);
-  const [dragSourceBlockId, setDragSourceBlockId] = useState<string | null>(null);
+  const [dragSourceBlockId, setDragSourceBlockId] = useState<string | null>(
+    null
+  );
   const [initialized, setInitialized] = useState(false);
 
   const eligibleTasks = tasks.filter(
@@ -50,8 +54,6 @@ export default function PomoSize({
 
     for (const step of sorted) {
       if (used.has(step.id)) continue;
-
-      // Find a block that has room
       let placed = false;
       for (const block of autoBlocks) {
         if (block.totalMins + (step.estimateMins || 0) <= 25) {
@@ -62,21 +64,17 @@ export default function PomoSize({
           break;
         }
       }
-
       if (!placed) {
-        const newBlock: PomoBlockLocal = {
+        autoBlocks.push({
           id: `local-${localBlockId++}`,
           steps: [step],
           totalMins: step.estimateMins || 0,
-        };
-        autoBlocks.push(newBlock);
+        });
         used.add(step.id);
       }
     }
 
-    // Any unassigned steps
     const remaining = allSteps.filter((s) => !used.has(s.id));
-
     setBlocks(autoBlocks);
     setUnassignedSteps(remaining);
     setInitialized(true);
@@ -96,8 +94,6 @@ export default function PomoSize({
 
   const handleDropOnBlock = (targetBlockId: string) => {
     if (!draggedStep) return;
-
-    // Remove from source
     if (dragSourceBlockId) {
       setBlocks((prev) =>
         prev.map((b) =>
@@ -115,8 +111,6 @@ export default function PomoSize({
         prev.filter((s) => s.id !== draggedStep.id)
       );
     }
-
-    // Add to target
     setBlocks((prev) =>
       prev.map((b) =>
         b.id === targetBlockId
@@ -128,14 +122,12 @@ export default function PomoSize({
           : b
       )
     );
-
     setDraggedStep(null);
     setDragSourceBlockId(null);
   };
 
   const handleDropOnUnassigned = () => {
     if (!draggedStep) return;
-
     if (dragSourceBlockId) {
       setBlocks((prev) =>
         prev.map((b) =>
@@ -149,7 +141,6 @@ export default function PomoSize({
         )
       );
     }
-
     setUnassignedSteps((prev) => [...prev, draggedStep]);
     setDraggedStep(null);
     setDragSourceBlockId(null);
@@ -179,18 +170,18 @@ export default function PomoSize({
   };
 
   const totalBlockMins = blocks.reduce((sum, b) => sum + b.totalMins, 0);
-  const efficiency = allSteps.length > 0
-    ? Math.round(
-        (allSteps.reduce((sum, s) => sum + (s.estimateMins || 0), 0) /
-          (blocks.length * 25 || 1)) *
-          100
-      )
-    : 0;
+  const efficiency =
+    allSteps.length > 0
+      ? Math.round(
+          (allSteps.reduce((sum, s) => sum + (s.estimateMins || 0), 0) /
+            (blocks.length * 25 || 1)) *
+            100
+        )
+      : 0;
 
   const canFinish = blocks.length > 0 && unassignedSteps.length === 0;
 
   const handleFinish = async () => {
-    // Save blocks to DB and update task stages
     for (const task of eligibleTasks) {
       const taskStepIds = new Set(task.steps.map((s) => s.id));
       const taskBlocks = blocks.filter((b) =>
@@ -214,37 +205,41 @@ export default function PomoSize({
     onNext();
   };
 
-  const getBlockBorderColor = (block: PomoBlockLocal) => {
-    if (block.totalMins > 25) return "border-danger";
-    if (block.totalMins >= 20) return "border-success";
-    return "border-primary/40";
+  const getBlockStatus = (block: PomoBlockLocal) => {
+    if (block.totalMins > 25)
+      return { border: "border-danger", bar: "bg-danger", label: "OVER" };
+    if (block.totalMins >= 20)
+      return { border: "border-success", bar: "bg-success", label: "OPTIMAL" };
+    return {
+      border: "border-primary/40",
+      bar: "bg-primary/60",
+      label: "ROOM",
+    };
   };
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-8">
-      <div className="mb-6 flex items-center justify-between">
-        <button
-          onClick={onBack}
-          className="text-text-muted hover:text-text-primary text-sm transition-colors"
-        >
-          &larr; Estimate
-        </button>
-      </div>
+    <div className="max-w-5xl mx-auto px-6 py-8 pb-24">
+      <StageHeader
+        stageNumber={5}
+        title="POMO-SIZE"
+        description="Group steps into 25-minute pomodoro blocks. Drag steps between blocks to optimize. Green = optimal, amber = room to add, red = over capacity."
+        progress={83}
+      />
 
       <div className="flex gap-6 flex-col lg:flex-row">
-        {/* Unassigned Steps */}
+        {/* Pending Blocks (sidebar) */}
         <div
-          className="lg:w-64 shrink-0"
+          className="lg:w-72 shrink-0"
           onDragOver={(e) => e.preventDefault()}
           onDrop={handleDropOnUnassigned}
         >
-          <h3 className="text-xs text-text-muted uppercase tracking-wider font-bold mb-3">
-            Unassigned Steps
-          </h3>
-          <div className="space-y-1.5 min-h-[100px] bg-surface/30 rounded-lg p-2">
+          <p className="text-text-muted text-xs font-mono uppercase tracking-widest mb-3">
+            PENDING_BLOCKS ({unassignedSteps.length})
+          </p>
+          <div className="space-y-1.5 min-h-[120px] border-2 border-dashed border-border rounded-lg p-3">
             {unassignedSteps.length === 0 && (
-              <p className="text-text-muted/30 text-xs text-center py-4">
-                All steps assigned
+              <p className="text-text-muted/20 text-xs font-mono text-center py-6">
+                ALL STEPS ASSIGNED
               </p>
             )}
             {unassignedSteps.map((step) => (
@@ -252,7 +247,7 @@ export default function PomoSize({
                 key={step.id}
                 draggable
                 onDragStart={() => handleDragStart(step, null)}
-                className="flex items-center justify-between bg-surface border border-border rounded px-3 py-2 cursor-grab active:cursor-grabbing hover:border-primary/30 transition-colors"
+                className="flex items-center justify-between bg-surface border border-border rounded-lg px-3 py-2.5 cursor-grab active:cursor-grabbing hover:border-primary/30 transition-colors"
               >
                 <span className="font-mono text-xs text-text-primary truncate">
                   {step.text}
@@ -267,131 +262,134 @@ export default function PomoSize({
 
         {/* Blocks Area */}
         <div className="flex-1">
-          <h3 className="text-xs text-text-muted uppercase tracking-wider font-bold mb-3">
-            Pomodoro Blocks (25 min)
-          </h3>
+          <p className="text-text-muted text-xs font-mono uppercase tracking-widest mb-3">
+            POMODORO BLOCKS ({blocks.length})
+          </p>
           <div className="space-y-4">
-            {blocks.map((block) => (
-              <div
-                key={block.id}
-                onDragOver={(e) => e.preventDefault()}
-                onDrop={() => handleDropOnBlock(block.id)}
-                className={`bg-surface border-2 rounded-lg p-4 transition-all ${getBlockBorderColor(
-                  block
-                )}`}
-              >
-                <div className="flex items-center justify-between mb-3">
-                  <div className="flex items-center gap-3">
-                    <span className="font-mono text-sm font-bold text-text-primary">
-                      {block.totalMins} / 25 min
-                    </span>
-                    {/* Fill bar */}
-                    <div className="w-24 h-1.5 bg-border rounded-full overflow-hidden">
-                      <div
-                        className={`h-full rounded-full transition-all ${
+            {blocks.map((block, i) => {
+              const status = getBlockStatus(block);
+              return (
+                <div
+                  key={block.id}
+                  onDragOver={(e) => e.preventDefault()}
+                  onDrop={() => handleDropOnBlock(block.id)}
+                  className={`bg-surface border-2 rounded-lg p-4 transition-all ${status.border}`}
+                >
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-3">
+                      <span className="text-text-muted text-xs font-mono uppercase tracking-wider">
+                        BLOCK {i + 1}
+                      </span>
+                      <span className="font-mono text-sm font-bold text-text-primary">
+                        {block.totalMins}/25 min
+                      </span>
+                      {/* Fill bar */}
+                      <div className="w-20 h-1.5 bg-border rounded-full overflow-hidden">
+                        <div
+                          className={`h-full rounded-full transition-all ${status.bar}`}
+                          style={{
+                            width: `${Math.min(
+                              (block.totalMins / 25) * 100,
+                              100
+                            )}%`,
+                          }}
+                        />
+                      </div>
+                      <span
+                        className={`text-[10px] font-mono uppercase tracking-wider ${
                           block.totalMins > 25
-                            ? "bg-danger"
+                            ? "text-danger"
                             : block.totalMins >= 20
-                            ? "bg-success"
-                            : "bg-primary/60"
+                            ? "text-success"
+                            : "text-primary/60"
                         }`}
-                        style={{
-                          width: `${Math.min(
-                            (block.totalMins / 25) * 100,
-                            100
-                          )}%`,
-                        }}
-                      />
+                      >
+                        {status.label}
+                      </span>
                     </div>
+                    <button
+                      onClick={() => deleteBlock(block.id)}
+                      className="text-text-muted/40 hover:text-danger text-xs font-mono transition-colors"
+                    >
+                      REMOVE
+                    </button>
                   </div>
-                  <button
-                    onClick={() => deleteBlock(block.id)}
-                    className="text-text-muted hover:text-danger text-xs transition-colors"
-                  >
-                    remove
-                  </button>
-                </div>
-                <div className="space-y-1.5">
-                  {block.steps.length === 0 && (
-                    <p className="text-text-muted/30 text-xs text-center py-3">
-                      Drop steps here
+                  <div className="space-y-1.5">
+                    {block.steps.length === 0 && (
+                      <div className="border-2 border-dashed border-border rounded-lg py-4 text-center">
+                        <p className="text-text-muted/20 text-xs font-mono">
+                          DROP STEPS HERE
+                        </p>
+                      </div>
+                    )}
+                    {block.steps.map((step) => (
+                      <div
+                        key={step.id}
+                        draggable
+                        onDragStart={() => handleDragStart(step, block.id)}
+                        className="flex items-center justify-between bg-background/50 border border-border rounded-lg px-3 py-2.5 cursor-grab active:cursor-grabbing hover:border-primary/20 transition-colors"
+                      >
+                        <span className="font-mono text-xs text-text-primary truncate">
+                          {step.text}
+                        </span>
+                        <div className="flex items-center gap-2 ml-2 shrink-0">
+                          <span className="font-mono text-xs text-text-muted">
+                            {step.estimateMins}m
+                          </span>
+                          <button
+                            onClick={() => removeStepFromBlock(block.id, step)}
+                            className="text-text-muted/30 hover:text-danger text-xs font-mono"
+                          >
+                            &times;
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  {block.totalMins > 25 && (
+                    <p className="text-danger text-[10px] font-mono uppercase tracking-wider mt-2">
+                      OVER CAPACITY — REMOVE OR MOVE STEPS
                     </p>
                   )}
-                  {block.steps.map((step) => (
-                    <div
-                      key={step.id}
-                      draggable
-                      onDragStart={() => handleDragStart(step, block.id)}
-                      className="flex items-center justify-between bg-background/50 border border-border rounded px-3 py-2 cursor-grab active:cursor-grabbing"
-                    >
-                      <span className="font-mono text-xs text-text-primary truncate">
-                        {step.text}
-                      </span>
-                      <div className="flex items-center gap-2 ml-2 shrink-0">
-                        <span className="font-mono text-xs text-text-muted">
-                          {step.estimateMins}m
-                        </span>
-                        <button
-                          onClick={() => removeStepFromBlock(block.id, step)}
-                          className="text-text-muted/50 hover:text-danger text-xs"
-                        >
-                          &times;
-                        </button>
-                      </div>
-                    </div>
-                  ))}
                 </div>
-                {block.totalMins > 25 && (
-                  <p className="text-danger text-xs mt-2">
-                    Over capacity — remove or move steps
-                  </p>
-                )}
-              </div>
-            ))}
+              );
+            })}
 
             {/* Add Block */}
             <button
               onClick={addNewBlock}
-              className="w-full py-3 border-2 border-dashed border-border rounded-lg text-text-muted hover:border-primary/30 hover:text-primary transition-all text-sm"
+              className="w-full py-3.5 border-2 border-dashed border-border rounded-lg text-text-muted font-mono text-xs uppercase tracking-widest hover:border-primary/30 hover:text-primary transition-all"
             >
-              + Initialize New Block
+              + INITIALIZE NEW BLOCK
             </button>
           </div>
         </div>
       </div>
 
-      {/* Footer */}
-      <div className="mt-8 py-4 border-t border-border flex items-center justify-between">
-        <div className="text-text-muted text-sm space-x-4">
-          <span>
-            <span className="font-mono font-bold text-text-primary">
-              {blocks.length}
-            </span>{" "}
-            blocks
-          </span>
-          <span>
-            <span className="font-mono font-bold text-text-primary">
-              {totalBlockMins}
-            </span>{" "}
-            min total
-          </span>
-          {blocks.length > 0 && (
-            <span>
-              <span className="font-mono font-bold text-text-primary">
-                {efficiency}%
-              </span>{" "}
-              efficiency
-            </span>
-          )}
-        </div>
-        <button
-          onClick={handleFinish}
-          disabled={!canFinish}
-          className="px-4 py-2 bg-primary text-background font-medium rounded-lg text-sm disabled:opacity-30 disabled:cursor-not-allowed hover:bg-primary/90 transition-colors"
-        >
-          Finish &rarr;
-        </button>
-      </div>
+      <FooterBar
+        stats={[
+          { label: "BLOCKS", value: blocks.length },
+          { label: "TOTAL", value: `${totalBlockMins}m` },
+          { label: "EFFICIENCY", value: `${efficiency}%` },
+        ]}
+        leftAction={
+          <button
+            onClick={onBack}
+            className="px-4 py-2 bg-surface border border-border rounded-lg text-text-muted font-mono text-xs uppercase tracking-wider hover:border-primary/30 hover:text-text-primary transition-colors"
+          >
+            &larr; BACK
+          </button>
+        }
+        rightAction={
+          <button
+            onClick={handleFinish}
+            disabled={!canFinish}
+            className="px-5 py-2 bg-primary text-background font-mono font-bold text-xs uppercase tracking-wider rounded-lg disabled:opacity-30 disabled:cursor-not-allowed hover:bg-primary/90 transition-colors"
+          >
+            FINISH &rarr;
+          </button>
+        }
+      />
     </div>
   );
 }

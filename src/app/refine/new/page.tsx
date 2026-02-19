@@ -12,11 +12,11 @@ const STAGES = ["braindump", "prioritize", "decompose", "estimate", "pomosize"] 
 type RefinementStage = (typeof STAGES)[number];
 
 const STAGE_NAMES: Record<RefinementStage, string> = {
-  braindump: "Brain Dump",
-  prioritize: "Prioritize",
-  decompose: "Decompose",
-  estimate: "Estimate",
-  pomosize: "Pomo-size",
+  braindump: "DUMP",
+  prioritize: "PRIORITIZE",
+  decompose: "DECOMPOSE",
+  estimate: "ESTIMATE",
+  pomosize: "POMO-SIZE",
 };
 
 export default function NewRefinementPage() {
@@ -40,31 +40,53 @@ export default function NewRefinementPage() {
     <div className="min-h-screen">
       <Header />
 
-      {/* Stage Progress */}
+      {/* Stage Progress Bar */}
       <div className="border-b border-border bg-surface/30">
-        <div className="max-w-3xl mx-auto px-4 py-3">
-          <div className="flex items-center gap-2">
+        <div className="max-w-3xl mx-auto px-6 py-3">
+          <div className="flex items-center justify-between">
             {STAGES.map((s, i) => (
-              <div key={s} className="flex items-center gap-2">
-                {i > 0 && (
-                  <div
-                    className={`w-8 h-px ${
-                      i <= currentIndex ? "bg-primary/50" : "bg-border"
-                    }`}
-                  />
-                )}
+              <div key={s} className="flex items-center flex-1 last:flex-none">
+                {/* Step Circle + Label */}
                 <button
                   onClick={() => i <= currentIndex && setStage(s)}
-                  className={`text-xs font-medium px-2 py-1 rounded transition-colors ${
-                    s === stage
-                      ? "bg-primary-dim text-primary"
-                      : i < currentIndex
-                      ? "text-primary/50 hover:text-primary"
-                      : "text-text-muted/40 cursor-default"
+                  className={`flex items-center gap-2 ${
+                    i <= currentIndex ? "cursor-pointer" : "cursor-default"
                   }`}
                 >
-                  {STAGE_NAMES[s]}
+                  <div
+                    className={`w-7 h-7 rounded-full flex items-center justify-center font-mono text-xs font-bold transition-colors ${
+                      s === stage
+                        ? "bg-primary text-background"
+                        : i < currentIndex
+                        ? "bg-primary-dim text-primary"
+                        : "bg-surface border border-border text-text-muted/40"
+                    }`}
+                  >
+                    {i + 1}
+                  </div>
+                  <span
+                    className={`font-mono text-xs uppercase tracking-wider font-bold hidden sm:inline transition-colors ${
+                      s === stage
+                        ? "text-primary"
+                        : i < currentIndex
+                        ? "text-primary/50"
+                        : "text-text-muted/30"
+                    }`}
+                  >
+                    {STAGE_NAMES[s]}
+                  </span>
                 </button>
+
+                {/* Connector Line */}
+                {i < STAGES.length - 1 && (
+                  <div className="flex-1 mx-3">
+                    <div
+                      className={`h-px transition-colors ${
+                        i < currentIndex ? "bg-primary/40" : "bg-border"
+                      }`}
+                    />
+                  </div>
+                )}
               </div>
             ))}
           </div>

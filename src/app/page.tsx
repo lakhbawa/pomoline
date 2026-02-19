@@ -47,15 +47,15 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen flex flex-col">
-      <div className="flex-1 flex items-center justify-center p-4">
-        <div className="w-full max-w-lg space-y-8">
+      <div className="flex-1 flex items-center justify-center p-6">
+        <div className="w-full max-w-lg space-y-10">
           {/* Logo */}
-          <div className="text-center space-y-2">
-            <h1 className="font-mono font-bold text-4xl text-primary">
-              pomoline
+          <div className="text-center space-y-3">
+            <h1 className="font-mono font-bold text-3xl uppercase tracking-widest text-primary">
+              POMOLINE
             </h1>
-            <p className="text-text-muted text-sm">
-              Refine raw thoughts into focused pomodoro blocks
+            <p className="text-text-muted text-xs font-mono uppercase tracking-wider">
+              REFINE RAW THOUGHTS INTO FOCUSED POMODORO BLOCKS
             </p>
           </div>
 
@@ -65,14 +65,14 @@ export default function Dashboard() {
               <div className="bg-surface border border-border rounded-lg p-6 transition-all hover:border-primary/50 hover:bg-surface/80">
                 <div className="flex items-start justify-between">
                   <div>
-                    <h2 className="font-sans font-bold text-lg text-text-primary group-hover:text-primary transition-colors">
-                      Refine
+                    <h2 className="font-mono font-bold text-sm uppercase tracking-widest text-text-primary group-hover:text-primary transition-colors">
+                      REFINE
                     </h2>
-                    <p className="text-text-muted text-sm mt-1">
-                      Work on your backlog
+                    <p className="text-text-muted text-xs font-mono mt-1 uppercase tracking-wider">
+                      WORK ON YOUR BACKLOG
                     </p>
                   </div>
-                  <span className="text-text-muted text-2xl">&rarr;</span>
+                  <span className="text-text-muted text-lg font-mono">&rarr;</span>
                 </div>
                 {!loading && totalTasks > 0 && (
                   <div className="mt-4 flex flex-wrap gap-2">
@@ -80,7 +80,7 @@ export default function Dashboard() {
                       stageCounts[stage] ? (
                         <span
                           key={stage}
-                          className="text-xs font-mono px-2 py-1 rounded bg-primary-dim text-primary/80"
+                          className="text-xs font-mono px-2 py-1 rounded bg-primary-dim text-primary/80 uppercase tracking-wider"
                         >
                           {stageCounts[stage]} {STAGE_LABELS[stage]}
                         </span>
@@ -89,8 +89,8 @@ export default function Dashboard() {
                   </div>
                 )}
                 {!loading && totalTasks === 0 && (
-                  <p className="mt-4 text-text-muted text-xs font-mono">
-                    No tasks yet — start brain dumping
+                  <p className="mt-4 text-text-muted/50 text-xs font-mono uppercase tracking-wider">
+                    NO TASKS YET — START BRAIN DUMPING
                   </p>
                 )}
               </div>
@@ -100,24 +100,23 @@ export default function Dashboard() {
               <div className="bg-surface border border-border rounded-lg p-6 transition-all hover:border-primary/50 hover:bg-surface/80">
                 <div className="flex items-start justify-between">
                   <div>
-                    <h2 className="font-sans font-bold text-lg text-text-primary group-hover:text-primary transition-colors">
-                      Plan
+                    <h2 className="font-mono font-bold text-sm uppercase tracking-widest text-text-primary group-hover:text-primary transition-colors">
+                      PLAN
                     </h2>
-                    <p className="text-text-muted text-sm mt-1">
-                      Plan today
+                    <p className="text-text-muted text-xs font-mono mt-1 uppercase tracking-wider">
+                      PLAN TODAY
                     </p>
                   </div>
-                  <span className="text-text-muted text-2xl">&rarr;</span>
+                  <span className="text-text-muted text-lg font-mono">&rarr;</span>
                 </div>
                 {!loading && readyCount > 0 && (
-                  <p className="mt-4 text-xs font-mono text-primary/80">
-                    {readyCount} pomo-ready block
-                    {readyCount !== 1 ? "s" : ""} available
+                  <p className="mt-4 text-xs font-mono text-primary/80 uppercase tracking-wider">
+                    {readyCount} POMO-READY BLOCK{readyCount !== 1 ? "S" : ""} AVAILABLE
                   </p>
                 )}
                 {!loading && readyCount === 0 && (
-                  <p className="mt-4 text-text-muted text-xs font-mono">
-                    No blocks ready — refine some tasks first
+                  <p className="mt-4 text-text-muted/50 text-xs font-mono uppercase tracking-wider">
+                    NO BLOCKS READY — REFINE SOME TASKS FIRST
                   </p>
                 )}
               </div>

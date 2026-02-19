@@ -10,34 +10,34 @@ export default function Header() {
   const isPlan = pathname.startsWith("/plan");
 
   return (
-    <header className="border-b border-border bg-surface/50 backdrop-blur-sm sticky top-0 z-50">
-      <div className="max-w-5xl mx-auto px-4 h-14 flex items-center justify-between">
+    <header className="border-b border-border bg-surface/80 backdrop-blur-sm sticky top-0 z-50">
+      <div className="max-w-5xl mx-auto px-6 h-12 flex items-center justify-between">
         <Link href="/" className="flex items-center gap-2">
-          <span className="font-mono font-bold text-primary text-lg">
-            pomoline
+          <span className="font-mono font-bold text-primary text-sm uppercase tracking-widest">
+            POMOLINE
           </span>
         </Link>
 
         <nav className="flex items-center gap-1">
           <Link
             href="/refine"
-            className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
+            className={`px-3 py-1.5 rounded-md font-mono text-xs uppercase tracking-wider font-bold transition-colors ${
               isRefine
                 ? "bg-primary-dim text-primary"
                 : "text-text-muted hover:text-text-primary"
             }`}
           >
-            Refine
+            REFINE
           </Link>
           <Link
             href="/plan"
-            className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
+            className={`px-3 py-1.5 rounded-md font-mono text-xs uppercase tracking-wider font-bold transition-colors ${
               isPlan
                 ? "bg-primary-dim text-primary"
                 : "text-text-muted hover:text-text-primary"
             }`}
           >
-            Plan
+            PLAN
           </Link>
         </nav>
       </div>
